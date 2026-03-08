@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>のりものワールド 🚂</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --sky1:#bfe8ff;
+    --sky2:#eaf8ff;
+    --hill1:#bfe3a8;
+    --hill2:#a8d88b;
+    --grass1:#9ed57c;
+    --grass2:#7fc35f;
+    --road:#707b86;
+    --road-edge:#8d98a3;
+    --line:#ffe36e;
+    --card-shadow: 0 8px 0 rgba(0,0,0,.12), 0 18px 28px rgba(0,0,0,.12);
+    --stroke:#28424f;
+    --white:#fff;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html,body{
+    width:100%;
+    min-height:100%;
+    overflow-x:hidden;
+  }
+
+  body{
+    font-family:'Kosugi Maru', sans-serif;
+    background:
+      linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 48%, #d9f1c8 48%, #bbdf93 70%, #8cca69 100%);
+    color:#24333d;
+    position:relative;
+  }
+
+  .bg{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:0;
+  }
+
+  .sun{
+    position:absolute;
+    top:18px;
+    right:20px;
+    width:86px;
+    height:86px;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 35% 35%, #fff8cf 0 28%, #ffd86c 45%, #ffbf45 72%, #f4a72a 100%);
+    box-shadow:
+      0 0 0 10px rgba(255,210,95,.18),
+      0 0 40px rgba(255,192,69,.45);
+    animation:sunFloat 4s ease-in-out infinite;
+  }
+
+  .sun::before{
+    content:"";
+    position:absolute;
+    inset:-14px;
+    border-radius:50%;
+    border:6px dashed rgba(255,217,106,.65);
+    animation:spin 18s linear infinite;
+  }
+
+  @keyframes sunFloat{
+    0%,100%{transform:translateY(0) scale(1)}
+    50%{transform:translateY(-4px) scale(1.03)}
+  }
+  @keyframes spin{
+    from{transform:rotate(0)}
+    to{transform:rotate(360deg)}
+  }
+
+  .cloud{
+    position:absolute;
+    background:#fff;
+    border-radius:999px;
+    opacity:.95;
+    box-shadow:0 8px 16px rgba(0,0,0,.06);
+    animation:floatCloud linear infinite;
+  }
+  .cloud::before,.cloud::after{
+    content:"";
+    position:absolute;
+    background:#fff;
+    border-radius:50%;
+  }
+  .cloud-1{width:140px;height:42px;top:7%;left:-180px;animation-duration:24s}
+  .cloud-1::before{width:58px;height:58px;left:14px;top:-24px}
+  .cloud-1::after{width:70px;height:70px;left:54px;top:-34px}
+
+  .cloud-2{width:110px;height:34px;top:18%;left:-140px;animation-duration:30s;animation-delay:6s}
+  .cloud-2::before{width:46px;height:46px;left:10px;top:-18px}
+  .cloud-2::after{width:54px;height:54px;left:42px;top:-24px}
+
+  .cloud-3{width:150px;height:45px;top:12%;left:-200px;animation-duration:34s;animation-delay:12s}
+  .cloud-3::before{width:66px;height:66px;left:18px;top:-26px}
+  .cloud-3::after{width:76px;height:76px;left:56px;top:-34px}
+
+  @keyframes floatCloud{
+    from{transform:translateX(0)}
+    to{transform:translateX(calc(100vw + 260px))}
+  }
+
+  .hill{
+    position:absolute;
+    left:-10%;
+    width:120%;
+    border-radius:50%;
+  }
+
+  .hill.back{
+    bottom:145px;
+    height:170px;
+    background:linear-gradient(180deg, #d3efb1 0%, #bce18f 100%);
+    box-shadow:inset 0 10px 20px rgba(255,255,255,.25);
+  }
+
+  .hill.mid{
+    bottom:98px;
+    height:150px;
+    background:linear-gradient(180deg, var(--hill1) 0%, var(--hill2) 100%);
+  }
+
+  .grass{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:56px;
+    height:110px;
+    background:linear-gradient(180deg, var(--grass1) 0%, var(--grass2) 100%);
+    box-shadow:inset 0 10px 20px rgba(255,255,255,.16);
+  }
+
+  .app{
+    position:relative;
+    z-index:10;
+    padding:18px 14px 140px;
+    max-width:760px;
+    margin:0 auto;
+  }
+
+  .title-wrap{
+    position:relative;
+    text-align:center;
+    margin:6px auto 16px;
+  }
+
+  .title-main{
+    font-size:clamp(2rem, 7vw, 3.5rem);
+    line-height:1.1;
+    color:#ffffff;
+    text-shadow:
+      0 3px 0 #5fadc9,
+      0 6px 0 rgba(0,0,0,.08);
+    letter-spacing:.04em;
+    animation:titleBounce 2.4s ease-in-out infinite;
+  }
+
+  .title-sub{
+    margin-top:10px;
+    font-size:clamp(.95rem, 3.8vw, 1.3rem);
+    color:#fffef4;
+    text-shadow:0 2px 0 rgba(145,115,34,.45);
+  }
+
+  @keyframes titleBounce{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-5px)}
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+    max-width:560px;
+    margin:0 auto;
+  }
+
+  .grid .card:nth-child(5){
+    grid-column:1 / -1;
+    max-width:260px;
+    width:100%;
+    margin:0 auto;
+  }
+
+  .card{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height:160px;
+    text-align:center;
+    text-decoration:none;
+    padding:16px 12px 14px;
+    border-radius:28px;
+    color:#27343d;
+    box-shadow:var(--card-shadow);
+    border:4px solid rgba(255,255,255,.85);
+    overflow:hidden;
+    transform:translateY(0);
+    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    -webkit-tap-highlight-color:transparent;
+    cursor:pointer;
+  }
+
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(circle at 25% 20%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 34%),
+      linear-gradient(180deg, rgba(255,255,255,.20) 0%, rgba(255,255,255,0) 55%);
+    pointer-events:none;
+  }
+
+  .card::after{
+    content:"";
+    position:absolute;
+    inset:auto 10px 10px 10px;
+    height:10px;
+    border-radius:999px;
+    background:rgba(255,255,255,.35);
+    filter:blur(2px);
+    opacity:.75;
+  }
+
+  .card:active{
+    transform:translateY(4px) scale(.98);
+    box-shadow:0 3px 0 rgba(0,0,0,.12), 0 8px 16px rgba(0,0,0,.12);
+  }
+
+  /* タップ時の光るエフェクト */
+  .card.playing {
+    animation: cardPulse 0.4s ease-out;
+  }
+  @keyframes cardPulse {
+    0%   { filter: brightness(1); }
+    40%  { filter: brightness(1.25); }
+    100% { filter: brightness(1); }
+  }
+
+  .card-1{background:linear-gradient(180deg,#fffaf2 0%, #ffe8c9 100%)}
+  .card-2{background:linear-gradient(180deg,#f4fbff 0%, #dcefff 100%)}
+  .card-3{background:linear-gradient(180deg,#fff5f5 0%, #ffdede 100%)}
+  .card-4{background:linear-gradient(180deg,#f4fff8 0%, #d9f4e4 100%)}
+  .card-5{background:linear-gradient(180deg,#faf5ff 0%, #eadbff 100%)}
+
+  .emoji-wrap{
+    width:78px;
+    height:78px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:rgba(255,255,255,.72);
+    box-shadow:
+      inset 0 4px 8px rgba(255,255,255,.65),
+      0 6px 12px rgba(0,0,0,.08);
+  }
+
+  .card-emoji{
+    font-size:clamp(2.6rem, 9vw, 3.4rem);
+    line-height:1;
+    filter:drop-shadow(0 3px 0 rgba(0,0,0,.12));
+    animation:wobble 2.8s ease-in-out infinite;
+  }
+  .card:nth-child(2) .card-emoji{animation-delay:.3s}
+  .card:nth-child(3) .card-emoji{animation-delay:.6s}
+  .card:nth-child(4) .card-emoji{animation-delay:.9s}
+  .card:nth-child(5) .card-emoji{animation-delay:1.2s}
+
+  @keyframes wobble{
+    0%,100%{transform:rotate(-4deg) translateY(0)}
+    50%{transform:rotate(4deg) translateY(-4px)}
+  }
+
+  .card-title{
+    font-size:clamp(.94rem, 3.2vw, 1.1rem);
+    line-height:1.28;
+    font-weight:700;
+  }
+
+  .card-badge{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    color:#fff;
+    font-size:.72rem;
+    font-weight:700;
+    box-shadow:0 3px 0 rgba(0,0,0,.10);
+  }
+  .card-1 .card-badge{background:#f0a04e}
+  .card-2 .card-badge{background:#5aa7ea}
+  .card-3 .card-badge{background:#ef7373}
+  .card-4 .card-badge{background:#67b888}
+  .card-5 .card-badge{background:#9e7ae2}
+
+  /* 街 */
+  .city{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:98px;
+    height:130px;
+    z-index:3;
+    pointer-events:none;
+  }
+
+  /* 線路 */
+  .rail-track{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:230px;
+    height:18px;
+    z-index:4;
+    pointer-events:none;
+  }
+
+  .train{
+    position:fixed;
+    bottom:240px;
+    left:110%;
+    z-index:5;
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.18));
+    animation:trainRide linear infinite;
+  }
+  .train-shinkansen{animation-duration:7s; animation-delay:0s;}
+  .train-steam{animation-duration:15s; animation-delay:6s;}
+
+  @keyframes trainRide{
+    from{transform:translateX(0)}
+    to{transform:translateX(calc(-100vw - 420px))}
+  }
+
+  /* 道路 */
+  .road{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    height:62px;
+    z-index:6;
+    background:
+      linear-gradient(180deg, var(--road-edge) 0%, var(--road) 20%, #66717a 100%);
+    box-shadow:inset 0 5px 0 rgba(255,255,255,.12);
+  }
+
+  .road::before{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:50%;
+    height:6px;
+    transform:translateY(-50%);
+    background:
+      repeating-linear-gradient(90deg, var(--line) 0 38px, transparent 38px 70px);
+  }
+
+  .road::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    height:6px;
+    background:rgba(255,255,255,.09);
+  }
+
+  .runner{
+    position:fixed;
+    left:110%;
+    bottom:58px;
+    z-index:7;
+    filter:drop-shadow(0 5px 8px rgba(0,0,0,.18));
+    animation:drive linear infinite;
+  }
+
+  .runner-fire{animation-duration:8s;animation-delay:0s}
+  .runner-amb{animation-duration:9s;animation-delay:3s}
+  .runner-bus{animation-duration:11s;animation-delay:6s}
+  .runner-police{animation-duration:8.5s;animation-delay:10s}
+  .runner-garbage{animation-duration:12s;animation-delay:13s}
+  .runner-delica{animation-duration:10s;animation-delay:17s}
+
+  @keyframes drive{
+    from{transform:translateX(0)}
+    to{transform:translateX(calc(-100vw - 240px))}
+  }
+
+  .vehicle svg,
+  .train svg{
+    overflow:visible;
+  }
+
+  .stroke{
+    stroke:var(--stroke);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+
+  @media (max-width:480px){
+    .app{padding-left:12px;padding-right:12px}
+    .grid{gap:12px}
+    .card{min-height:152px;border-radius:24px}
+    .emoji-wrap{width:72px;height:72px}
+    .city{height:116px}
+    .rail-track{bottom:200px}
+    .train{bottom:210px}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="sun"></div>
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+  <div class="hill back"></div>
+  <div class="hill mid"></div>
+  <div class="grass"></div>
+</div>
+
+<div class="app">
+  <div class="title-wrap">
+    <div class="title-main">🚂 のりものワールド 🚒</div>
+    <div class="title-sub">あそびたいゲームをえらんでね！</div>
+  </div>
+
+  <div class="grid">
+    <a class="card card-1" href="game1.html" data-sound="shinkansen">
+      <div class="emoji-wrap"><div class="card-emoji">🚄</div></div>
+      <div class="card-title">のりもの<br>パレード</div>
+      <div class="card-badge">タップで登場！</div>
+    </a>
+
+    <a class="card card-2" href="game2.html" data-sound="match">
+      <div class="emoji-wrap"><div class="card-emoji">🚌</div></div>
+      <div class="card-title">のりもの<br>ならべ</div>
+      <div class="card-badge">マッチング</div>
+    </a>
+
+    <a class="card card-3" href="game3.html" data-sound="build">
+      <div class="emoji-wrap"><div class="card-emoji">🏗️</div></div>
+      <div class="card-title">くるま<br>こうじょう</div>
+      <div class="card-badge">くみたて！</div>
+    </a>
+
+    <a class="card card-4" href="game4.html" data-sound="quiz">
+      <div class="emoji-wrap"><div class="card-emoji">🔊</div></div>
+      <div class="card-title">おとあて<br>ゲーム</div>
+      <div class="card-badge">なんの音？</div>
+    </a>
+
+    <a class="card card-5" href="game5.html" data-sound="city">
+      <div class="emoji-wrap"><div class="card-emoji">🏙️</div></div>
+      <div class="card-title">まちを はしろう！</div>
+      <div class="card-badge">おしごとゲーム</div>
+    </a>
+  </div>
+</div>
+
+<!-- 街 -->
+<div class="city">
+<svg width="100%" height="100%" viewBox="0 0 900 130" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="110" width="900" height="20" fill="#7ec563"/>
+  <g>
+    <rect x="40" y="88" width="8" height="22" rx="2" fill="#8b5c36"/>
+    <circle cx="44" cy="80" r="18" fill="#53a84a"/>
+    <circle cx="31" cy="88" r="10" fill="#47923f"/>
+    <circle cx="55" cy="88" r="10" fill="#67b65b"/>
+    <rect x="208" y="92" width="7" height="18" rx="2" fill="#8b5c36"/>
+    <circle cx="212" cy="85" r="15" fill="#58ad4d"/>
+    <rect x="405" y="90" width="7" height="20" rx="2" fill="#8b5c36"/>
+    <circle cx="409" cy="83" r="17" fill="#5eb251"/>
+    <rect x="705" y="92" width="7" height="18" rx="2" fill="#8b5c36"/>
+    <circle cx="709" cy="85" r="15" fill="#58ad4d"/>
+  </g>
+  <g>
+    <rect x="92" y="34" width="46" height="76" rx="4" fill="#afc7db"/>
+    <rect x="92" y="34" width="46" height="10" rx="4" fill="#9bb6cc"/>
+    <g fill="#e7f5ff">
+      <rect x="98" y="48" width="9" height="8" rx="1"/>
+      <rect x="112" y="48" width="9" height="8" rx="1"/>
+      <rect x="126" y="48" width="7" height="8" rx="1"/>
+      <rect x="98" y="62" width="9" height="8" rx="1"/>
+      <rect x="112" y="62" width="9" height="8" rx="1"/>
+      <rect x="126" y="62" width="7" height="8" rx="1"/>
+      <rect x="98" y="76" width="9" height="8" rx="1"/>
+      <rect x="112" y="76" width="9" height="8" rx="1"/>
+      <rect x="126" y="76" width="7" height="8" rx="1"/>
+    </g>
+    <rect x="155" y="74" width="56" height="36" rx="3" fill="#ffe0ba"/>
+    <polygon points="151,74 215,74 183,48" fill="#e66d57"/>
+    <rect x="176" y="92" width="13" height="18" rx="2" fill="#91613e"/>
+    <rect x="161" y="79" width="14" height="10" rx="2" fill="#bfe7ff"/>
+    <rect x="191" y="79" width="14" height="10" rx="2" fill="#bfe7ff"/>
+    <rect x="250" y="64" width="78" height="46" rx="4" fill="#f5fbff"/>
+    <rect x="250" y="64" width="78" height="12" rx="4" fill="#3b95e5"/>
+    <text x="289" y="73" font-size="8" fill="white" font-family="sans-serif" font-weight="bold" text-anchor="middle">SHOP</text>
+    <rect x="258" y="82" width="26" height="22" rx="2" fill="#c7ebff"/>
+    <rect x="290" y="82" width="30" height="22" rx="2" fill="#c7ebff"/>
+    <rect x="358" y="26" width="52" height="84" rx="4" fill="#c5cce9"/>
+    <rect x="358" y="26" width="52" height="10" rx="4" fill="#aab5dc"/>
+    <g fill="#eef4ff">
+      <rect x="364" y="42" width="10" height="8" rx="1"/>
+      <rect x="379" y="42" width="10" height="8" rx="1"/>
+      <rect x="394" y="42" width="10" height="8" rx="1"/>
+      <rect x="364" y="56" width="10" height="8" rx="1"/>
+      <rect x="379" y="56" width="10" height="8" rx="1"/>
+      <rect x="394" y="56" width="10" height="8" rx="1"/>
+      <rect x="364" y="70" width="10" height="8" rx="1"/>
+      <rect x="379" y="70" width="10" height="8" rx="1"/>
+      <rect x="394" y="70" width="10" height="8" rx="1"/>
+      <rect x="364" y="84" width="10" height="8" rx="1"/>
+      <rect x="379" y="84" width="10" height="8" rx="1"/>
+      <rect x="394" y="84" width="10" height="8" rx="1"/>
+    </g>
+    <rect x="458" y="58" width="86" height="52" rx="4" fill="#eadfcb"/>
+    <rect x="458" y="58" width="86" height="14" rx="4" fill="#b98a4a"/>
+    <text x="501" y="69" font-size="9" fill="white" font-family="sans-serif" font-weight="bold" text-anchor="middle">えき</text>
+    <circle cx="501" cy="55" r="8" fill="#fff9ef" stroke="#b98a4a" stroke-width="2"/>
+    <line x1="501" y1="55" x2="501" y2="50" stroke="#333" stroke-width="1.5"/>
+    <line x1="501" y1="55" x2="505" y2="55" stroke="#333" stroke-width="1.5"/>
+    <rect x="480" y="83" width="16" height="27" rx="2" fill="#caedff"/>
+    <rect x="503" y="83" width="16" height="27" rx="2" fill="#caedff"/>
+    <rect x="590" y="76" width="50" height="34" rx="3" fill="#f7e7ce"/>
+    <polygon points="586,76 644,76 615,52" fill="#cc684f"/>
+    <rect x="609" y="92" width="12" height="18" rx="2" fill="#835733"/>
+    <rect x="596" y="80" width="13" height="10" rx="2" fill="#bfe7ff"/>
+    <rect x="621" y="80" width="13" height="10" rx="2" fill="#bfe7ff"/>
+    <rect x="680" y="36" width="52" height="74" rx="4" fill="#a7c6d7"/>
+    <rect x="680" y="36" width="52" height="10" rx="4" fill="#8eb1c5"/>
+    <g fill="#eaf7ff">
+      <rect x="686" y="50" width="10" height="8" rx="1"/>
+      <rect x="701" y="50" width="10" height="8" rx="1"/>
+      <rect x="716" y="50" width="10" height="8" rx="1"/>
+      <rect x="686" y="64" width="10" height="8" rx="1"/>
+      <rect x="701" y="64" width="10" height="8" rx="1"/>
+      <rect x="716" y="64" width="10" height="8" rx="1"/>
+      <rect x="686" y="78" width="10" height="8" rx="1"/>
+      <rect x="701" y="78" width="10" height="8" rx="1"/>
+      <rect x="716" y="78" width="10" height="8" rx="1"/>
+    </g>
+  </g>
+</svg>
+</div>
+
+<!-- 線路 -->
+<div class="rail-track">
+<svg width="100%" height="18" viewBox="0 0 900 18" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="2" width="900" height="4" rx="2" fill="#8e99a7"/>
+  <rect x="0" y="12" width="900" height="4" rx="2" fill="#8e99a7"/>
+  <g fill="#7c604d">
+    <rect x="0" y="0" width="14" height="18" rx="1"/>
+    <rect x="32" y="0" width="14" height="18" rx="1"/>
+    <rect x="64" y="0" width="14" height="18" rx="1"/>
+    <rect x="96" y="0" width="14" height="18" rx="1"/>
+    <rect x="128" y="0" width="14" height="18" rx="1"/>
+    <rect x="160" y="0" width="14" height="18" rx="1"/>
+    <rect x="192" y="0" width="14" height="18" rx="1"/>
+    <rect x="224" y="0" width="14" height="18" rx="1"/>
+    <rect x="256" y="0" width="14" height="18" rx="1"/>
+    <rect x="288" y="0" width="14" height="18" rx="1"/>
+    <rect x="320" y="0" width="14" height="18" rx="1"/>
+    <rect x="352" y="0" width="14" height="18" rx="1"/>
+    <rect x="384" y="0" width="14" height="18" rx="1"/>
+    <rect x="416" y="0" width="14" height="18" rx="1"/>
+    <rect x="448" y="0" width="14" height="18" rx="1"/>
+    <rect x="480" y="0" width="14" height="18" rx="1"/>
+    <rect x="512" y="0" width="14" height="18" rx="1"/>
+    <rect x="544" y="0" width="14" height="18" rx="1"/>
+    <rect x="576" y="0" width="14" height="18" rx="1"/>
+    <rect x="608" y="0" width="14" height="18" rx="1"/>
+    <rect x="640" y="0" width="14" height="18" rx="1"/>
+    <rect x="672" y="0" width="14" height="18" rx="1"/>
+    <rect x="704" y="0" width="14" height="18" rx="1"/>
+    <rect x="736" y="0" width="14" height="18" rx="1"/>
+    <rect x="768" y="0" width="14" height="18" rx="1"/>
+    <rect x="800" y="0" width="14" height="18" rx="1"/>
+    <rect x="832" y="0" width="14" height="18" rx="1"/>
+    <rect x="864" y="0" width="14" height="18" rx="1"/>
+  </g>
+</svg>
+</div>
+
+<!-- 新幹線 -->
+<div class="train train-shinkansen">
+<svg width="300" height="52" viewBox="0 0 300 52" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <path d="M6 34 Q8 14 34 12 L108 12 L108 42 L6 42 Z" fill="#f7fbff" stroke="#355165" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M6 34 Q10 24 24 22 L108 22 L108 42 L6 42 Z" fill="#1f6fd1"/>
+    <path d="M10 18 Q18 12 35 14 L60 14 L60 21 L10 21 Z" fill="#a9e3ff"/>
+    <rect x="108" y="12" width="92" height="30" fill="#f7fbff" stroke="#355165" stroke-width="2.6"/>
+    <rect x="108" y="22" width="92" height="20" fill="#1f6fd1"/>
+    <rect x="116" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/>
+    <rect x="144" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/>
+    <rect x="172" y="14" width="18" height="8" rx="1" fill="#a9e3ff"/>
+    <rect x="202" y="12" width="92" height="30" rx="0 5 5 0" fill="#f7fbff" stroke="#355165" stroke-width="2.6"/>
+    <rect x="202" y="22" width="92" height="20" fill="#1f6fd1"/>
+    <rect x="210" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/>
+    <rect x="238" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/>
+    <rect x="266" y="14" width="18" height="8" rx="1" fill="#a9e3ff"/>
+    <line x1="24" y1="12" x2="294" y2="12" stroke="#25b35c" stroke-width="3"/>
+    <ellipse cx="12" cy="35" rx="4.5" ry="3" fill="#fff5b7"/>
+    <rect x="18" y="43" width="24" height="4" rx="2" fill="#697b8a"/>
+    <rect x="70" y="43" width="24" height="4" rx="2" fill="#697b8a"/>
+    <rect x="122" y="43" width="24" height="4" rx="2" fill="#697b8a"/>
+    <rect x="172" y="43" width="24" height="4" rx="2" fill="#697b8a"/>
+    <rect x="218" y="43" width="24" height="4" rx="2" fill="#697b8a"/>
+    <rect x="266" y="43" width="24" height="4" rx="2" fill="#697b8a"/>
+  </g>
+</svg>
+</div>
+
+<!-- 蒸気機関車 -->
+<div class="train train-steam">
+<svg width="250" height="60" viewBox="0 0 250 60" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <circle cx="30" cy="8" r="8" fill="white" opacity=".7"/>
+    <circle cx="42" cy="4" r="10" fill="white" opacity=".6"/>
+    <circle cx="57" cy="7" r="7" fill="white" opacity=".5"/>
+    <rect x="28" y="14" width="10" height="14" rx="2" fill="#2f3134"/>
+    <ellipse cx="33" cy="14" rx="8" ry="3" fill="#44474c"/>
+    <rect x="16" y="24" width="84" height="20" rx="10" fill="#3a3d42" stroke="#1f2328" stroke-width="2"/>
+    <ellipse cx="74" cy="24" rx="12" ry="7" fill="#575d66"/>
+    <rect x="100" y="18" width="42" height="26" rx="3" fill="#8b5a30" stroke="#5a371b" stroke-width="2"/>
+    <rect x="104" y="21" width="16" height="14" rx="2" fill="#bce7ff"/>
+    <rect x="124" y="21" width="12" height="14" rx="2" fill="#bce7ff"/>
+    <circle cx="16" cy="32" r="5" fill="#fff5b7"/>
+    <circle cx="48" cy="48" r="10" fill="#cf2e18" stroke="#2f3134" stroke-width="2"/>
+    <circle cx="76" cy="48" r="10" fill="#cf2e18" stroke="#2f3134" stroke-width="2"/>
+    <circle cx="24" cy="48" r="6" fill="#666"/>
+    <circle cx="108" cy="48" r="6" fill="#666"/>
+    <rect x="24" y="46" width="52" height="4" rx="2" fill="#a3adb8"/>
+    <rect x="46" y="40" width="6" height="10" rx="2" fill="#a3adb8"/>
+    <rect x="144" y="24" width="62" height="22" rx="3" fill="#5a5d63" stroke="#2f3134" stroke-width="2"/>
+    <rect x="148" y="26" width="54" height="12" rx="2" fill="#3b3d40"/>
+    <circle cx="160" cy="48" r="7" fill="#555"/>
+    <circle cx="184" cy="48" r="7" fill="#555"/>
+  </g>
+</svg>
+</div>
+
+<!-- 道路の乗り物 -->
+<div class="runner runner-fire vehicle">
+<svg width="136" height="72" viewBox="0 0 136 72" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <rect x="12" y="24" width="106" height="28" rx="8" fill="#ef3a3a" class="stroke"/>
+    <rect x="8" y="16" width="38" height="36" rx="8" fill="#d92c2c" class="stroke"/>
+    <rect x="12" y="20" width="20" height="14" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="34" y="22" width="8" height="11" rx="2" fill="#bfeaff" class="stroke"/>
+    <rect x="48" y="20" width="62" height="6" rx="3" fill="#f0c541" class="stroke"/>
+    <line x1="60" y1="20" x2="60" y2="26" class="stroke"/>
+    <line x1="74" y1="20" x2="74" y2="26" class="stroke"/>
+    <line x1="88" y1="20" x2="88" y2="26" class="stroke"/>
+    <line x1="102" y1="20" x2="102" y2="26" class="stroke"/>
+    <rect x="52" y="34" width="52" height="10" rx="3" fill="#bb2121" class="stroke"/>
+    <rect x="14" y="12" width="18" height="7" rx="3.5" fill="#ff5b5b" class="stroke"/>
+    <ellipse cx="12" cy="37" rx="4" ry="4" fill="#fff1a8"/>
+    <circle cx="30" cy="56" r="10" fill="#31343a" class="stroke"/>
+    <circle cx="30" cy="56" r="4.5" fill="#8c96a3"/>
+    <circle cx="102" cy="56" r="10" fill="#31343a" class="stroke"/>
+    <circle cx="102" cy="56" r="4.5" fill="#8c96a3"/>
+  </g>
+</svg>
+</div>
+
+<div class="runner runner-amb vehicle">
+<svg width="126" height="70" viewBox="0 0 126 70" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <rect x="10" y="20" width="104" height="30" rx="8" fill="#fbfbfb" class="stroke"/>
+    <rect x="8" y="14" width="34" height="36" rx="8" fill="#f0f0f0" class="stroke"/>
+    <rect x="12" y="18" width="18" height="14" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="32" y="20" width="7" height="10" rx="2" fill="#bfeaff" class="stroke"/>
+    <rect x="10" y="40" width="104" height="7" rx="0" fill="#f08b22"/>
+    <rect x="58" y="22" width="22" height="7" rx="2" fill="#d83030"/>
+    <rect x="65" y="16" width="8" height="19" rx="2" fill="#d83030"/>
+    <rect x="12" y="10" width="18" height="7" rx="3.5" fill="#ff5959" class="stroke"/>
+    <ellipse cx="10" cy="35" rx="4" ry="4" fill="#fff1a8"/>
+    <circle cx="26" cy="56" r="9" fill="#31343a" class="stroke"/>
+    <circle cx="26" cy="56" r="4.5" fill="#8c96a3"/>
+    <circle cx="96" cy="56" r="9" fill="#31343a" class="stroke"/>
+    <circle cx="96" cy="56" r="4.5" fill="#8c96a3"/>
+  </g>
+</svg>
+</div>
+
+<div class="runner runner-bus vehicle">
+<svg width="154" height="72" viewBox="0 0 154 72" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <rect x="8" y="12" width="138" height="42" rx="8" fill="#f2da34" class="stroke"/>
+    <rect x="8" y="40" width="138" height="10" fill="#0a8948"/>
+    <rect x="8" y="12" width="24" height="42" rx="8" fill="#e6cd2a" class="stroke"/>
+    <rect x="12" y="16" width="16" height="18" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="36" y="18" width="20" height="14" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="62" y="18" width="20" height="14" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="88" y="18" width="20" height="14" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="114" y="18" width="20" height="14" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="64" y="34" width="14" height="20" rx="2" fill="rgba(0,0,0,.12)"/>
+    <line x1="71" y1="34" x2="71" y2="54" class="stroke"/>
+    <circle cx="34" cy="58" r="10" fill="#31343a" class="stroke"/>
+    <circle cx="34" cy="58" r="4.5" fill="#8c96a3"/>
+    <circle cx="118" cy="58" r="10" fill="#31343a" class="stroke"/>
+    <circle cx="118" cy="58" r="4.5" fill="#8c96a3"/>
+  </g>
+</svg>
+</div>
+
+<div class="runner runner-police vehicle">
+<svg width="120" height="66" viewBox="0 0 120 66" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <rect x="10" y="32" width="98" height="16" rx="5" fill="#1d1f23" class="stroke"/>
+    <path d="M16 32 L16 18 Q20 10 36 10 L80 10 Q96 12 102 20 L102 32 Z" fill="#f8f8f8" class="stroke"/>
+    <rect x="18" y="14" width="20" height="16" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="42" y="14" width="18" height="14" rx="2" fill="#bfeaff" class="stroke"/>
+    <rect x="64" y="14" width="14" height="14" rx="2" fill="#bfeaff" class="stroke"/>
+    <rect x="36" y="6" width="14" height="6" rx="3" fill="#f14c4c" class="stroke"/>
+    <rect x="54" y="6" width="14" height="6" rx="3" fill="#4388ff" class="stroke"/>
+    <rect x="10" y="36" width="98" height="4" fill="white"/>
+    <text x="83" y="28" font-size="8" fill="#2552a8" font-family="sans-serif" font-weight="bold" text-anchor="middle">POLICE</text>
+    <ellipse cx="12" cy="38" rx="4" ry="4" fill="#fff1a8"/>
+    <circle cx="30" cy="54" r="9" fill="#31343a" class="stroke"/>
+    <circle cx="30" cy="54" r="4.5" fill="#8c96a3"/>
+    <circle cx="92" cy="54" r="9" fill="#31343a" class="stroke"/>
+    <circle cx="92" cy="54" r="4.5" fill="#8c96a3"/>
+  </g>
+</svg>
+</div>
+
+<div class="runner runner-garbage vehicle">
+<svg width="140" height="70" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <rect x="42" y="16" width="86" height="34" rx="5" fill="#5ab85f" class="stroke"/>
+    <rect x="120" y="16" width="8" height="34" fill="#499d4d" class="stroke"/>
+    <rect x="8" y="14" width="36" height="36" rx="8" fill="#4da952" class="stroke"/>
+    <rect x="12" y="18" width="20" height="16" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="34" y="20" width="7" height="10" rx="2" fill="#bfeaff" class="stroke"/>
+    <circle cx="85" cy="33" r="12" fill="rgba(255,255,255,.18)"/>
+    <text x="85" y="35" font-size="8" fill="white" font-family="sans-serif" font-weight="bold" text-anchor="middle">ECO</text>
+    <circle cx="28" cy="56" r="10" fill="#31343a" class="stroke"/>
+    <circle cx="28" cy="56" r="4.5" fill="#8c96a3"/>
+    <circle cx="108" cy="56" r="10" fill="#31343a" class="stroke"/>
+    <circle cx="108" cy="56" r="4.5" fill="#8c96a3"/>
+  </g>
+</svg>
+</div>
+
+<div class="runner runner-delica vehicle">
+<svg width="108" height="66" viewBox="0 0 108 66" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <rect x="10" y="20" width="84" height="28" rx="6" fill="#4b82bd" class="stroke"/>
+    <rect x="14" y="12" width="76" height="12" rx="5" fill="#3d6ea2" class="stroke"/>
+    <rect x="8" y="12" width="20" height="36" rx="5" fill="#3d6ea2" class="stroke"/>
+    <rect x="12" y="16" width="14" height="20" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="32" y="16" width="18" height="12" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="54" y="16" width="18" height="12" rx="3" fill="#bfeaff" class="stroke"/>
+    <rect x="76" y="16" width="12" height="12" rx="3" fill="#bfeaff" class="stroke"/>
+    <text x="58" y="38" font-size="7" fill="white" font-family="sans-serif" font-weight="bold" text-anchor="middle">DELICA</text>
+    <circle cx="28" cy="54" r="9" fill="#31343a" class="stroke"/>
+    <circle cx="28" cy="54" r="4.5" fill="#8c96a3"/>
+    <circle cx="78" cy="54" r="9" fill="#31343a" class="stroke"/>
+    <circle cx="78" cy="54" r="4.5" fill="#8c96a3"/>
+  </g>
+</svg>
+</div>
+
+<div class="road"></div>
+
+<script>
+// =============================================
+// Web Audio API による乗り物サウンドエンジン
+// =============================================
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let ctx = null;
+
+function getCtx() {
+  if (!ctx) ctx = new AudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+
+const sounds = {
+
+  // 🚄 新幹線：高音の発車ホイッスル → 加速音
+  shinkansen(ac) {
+    const t = ac.currentTime;
+    // ホイッスル
+    const osc1 = ac.createOscillator();
+    const gain1 = ac.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, t);
+    osc1.frequency.linearRampToValueAtTime(1100, t + 0.15);
+    osc1.frequency.linearRampToValueAtTime(880, t + 0.3);
+    gain1.gain.setValueAtTime(0.4, t);
+    gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    osc1.connect(gain1); gain1.connect(ac.destination);
+    osc1.start(t); osc1.stop(t + 0.5);
+    // 2回目
+    const osc2 = ac.createOscillator();
+    const gain2 = ac.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1100, t + 0.55);
+    gain2.gain.setValueAtTime(0.35, t + 0.55);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+    osc2.connect(gain2); gain2.connect(ac.destination);
+    osc2.start(t + 0.55); osc2.stop(t + 0.9);
+  },
+
+  // 🚌 バス：プップー（低めのクラクション2回）
+  match(ac) {
+    const t = ac.currentTime;
+    [0, 0.35].forEach((delay, i) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(220, t + delay);
+      osc.frequency.linearRampToValueAtTime(200, t + delay + 0.2);
+      gain.gain.setValueAtTime(0.25, t + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.28);
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.start(t + delay); osc.stop(t + delay + 0.3);
+    });
+  },
+
+  // 🏗️ 工場：ガガガッ（工事音・ノイズ系）
+  build(ac) {
+    const t = ac.currentTime;
+    // 低いドリル音
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, t);
+    osc.frequency.setValueAtTime(120, t + 0.08);
+    osc.frequency.setValueAtTime(80, t + 0.16);
+    osc.frequency.setValueAtTime(120, t + 0.24);
+    osc.frequency.setValueAtTime(80, t + 0.32);
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(t); osc.stop(t + 0.5);
+    // メタル打撃音
+    const buf = ac.createBuffer(1, ac.sampleRate * 0.15, ac.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const src = ac.createBufferSource();
+    const bpf = ac.createBiquadFilter();
+    const gn = ac.createGain();
+    bpf.type = 'bandpass'; bpf.frequency.value = 1200; bpf.Q.value = 0.5;
+    gn.gain.setValueAtTime(0.6, t + 0.45);
+    gn.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+    src.buffer = buf;
+    src.connect(bpf); bpf.connect(gn); gn.connect(ac.destination);
+    src.start(t + 0.45);
+  },
+
+  // 🔊 音あてゲーム：ポロロン（クイズ正解っぽい音）
+  quiz(ac) {
+    const t = ac.currentTime;
+    const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.35, t + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 0.25);
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.start(t + i * 0.1);
+      osc.stop(t + i * 0.1 + 0.3);
+    });
+  },
+
+  // 🏙️ まちをはしろう：ピーポーピーポー（サイレン風）
+  city(ac) {
+    const t = ac.currentTime;
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = 'sine';
+    // ピーポー繰り返し
+    osc.frequency.setValueAtTime(770, t);
+    osc.frequency.linearRampToValueAtTime(640, t + 0.25);
+    osc.frequency.linearRampToValueAtTime(770, t + 0.5);
+    osc.frequency.linearRampToValueAtTime(640, t + 0.75);
+    osc.frequency.linearRampToValueAtTime(770, t + 1.0);
+    gain.gain.setValueAtTime(0.35, t);
+    gain.gain.setValueAtTime(0.35, t + 0.9);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(t); osc.stop(t + 1.1);
+  }
+};
+
+// カードにイベント登録
+document.querySelectorAll('.card[data-sound]').forEach(card => {
+  card.addEventListener('click', function(e) {
+    e.preventDefault(); // 音を鳴らしてからページ遷移
+    const soundKey = this.dataset.sound;
+    const href = this.getAttribute('href');
+
+    // 光るエフェクト
+    this.classList.add('playing');
+    this.addEventListener('animationend', () => this.classList.remove('playing'), { once: true });
+
+    try {
+      const ac = getCtx();
+      if (sounds[soundKey]) sounds[soundKey](ac);
+    } catch(err) { console.warn('Audio error:', err); }
+
+    // 音が鳴り終わったあとに遷移（最大600ms待つ）
+    setTimeout(() => { window.location.href = href; }, 600);
+  });
+});
+</script>
+
+</body>
+</html>
