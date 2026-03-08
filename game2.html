@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>のりものならべ 🃏</title>
+<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+<style>
+:root{--sky1:#bfe8ff;--sky2:#eaf8ff;--grass1:#9ed57c;--grass2:#7fc35f}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation}
+body{font-family:'Kosugi Maru',sans-serif;
+  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 55%,#d9f1c8 55%,#8cca69 100%)}
+
+.sun{position:fixed;top:14px;right:18px;width:60px;height:60px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff8cf 0 28%,#ffd86c 45%,#ffbf45 72%,#f4a72a 100%);
+  box-shadow:0 0 0 7px rgba(255,210,95,.18),0 0 26px rgba(255,192,69,.4);
+  animation:sunFloat 4s ease-in-out infinite;z-index:1}
+.sun::before{content:"";position:absolute;inset:-11px;border-radius:50%;
+  border:4px dashed rgba(255,217,106,.6);animation:spin 18s linear infinite}
+@keyframes sunFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.cloud{position:fixed;background:#fff;border-radius:999px;opacity:.9;animation:floatCloud linear infinite;z-index:1}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.c1{width:120px;height:34px;top:7%;left:-160px;animation-duration:22s}
+.c1::before{width:50px;height:50px;left:10px;top:-20px}
+.c1::after{width:60px;height:60px;left:46px;top:-28px}
+.c2{width:90px;height:28px;top:16%;left:-120px;animation-duration:30s;animation-delay:9s}
+.c2::before{width:38px;height:38px;left:8px;top:-14px}
+.c2::after{width:46px;height:46px;left:34px;top:-20px}
+@keyframes floatCloud{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 240px))}}
+
+.header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;
+  justify-content:space-between;padding:10px 16px;z-index:20}
+.back-btn{background:rgba(255,255,255,.9);border:none;border-radius:50px;
+  padding:8px 18px;font-family:'Kosugi Maru',sans-serif;font-size:.95rem;
+  cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.12);text-decoration:none;
+  color:#333;-webkit-tap-highlight-color:transparent}
+.back-btn:active{transform:scale(.95)}
+.score-wrap{background:rgba(255,255,255,.9);border-radius:50px;padding:8px 18px;
+  box-shadow:0 4px 12px rgba(0,0,0,.12);font-size:.95rem;font-weight:bold;color:#444}
+
+#board{
+  position:fixed;top:60px;left:0;right:0;bottom:0;
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  grid-template-rows:repeat(3,1fr);
+  gap:8px;padding:10px 12px 16px;z-index:10;
+}
+
+.card{position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1);border-radius:16px}
+.card.flipped{transform:rotateY(180deg)}
+.card.matched{transform:rotateY(180deg);pointer-events:none}
+.card.matched .front{border-color:#68d56a;box-shadow:0 0 0 4px #68d56a,0 6px 20px rgba(0,0,0,.15);
+  animation:matchPulse .5s ease forwards}
+@keyframes matchPulse{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
+.card.wrong{animation:shake .35s ease}
+@keyframes shake{
+  0%,100%{transform:rotateY(180deg) translateX(0)}
+  25%{transform:rotateY(180deg) translateX(-6px)}
+  75%{transform:rotateY(180deg) translateX(6px)}
+}
+
+.card-face{position:absolute;inset:0;border-radius:16px;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.back{background:linear-gradient(135deg,#4b82bd,#2552a8);
+  border:3px solid rgba(255,255,255,.3);box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.back-icon{font-size:clamp(1.4rem,4vw,2.4rem);opacity:.7;user-select:none}
+.front{background:white;border:3px solid #dbe7f5;box-shadow:0 6px 16px rgba(0,0,0,.15);
+  transform:rotateY(180deg);flex-direction:column;gap:3px;padding:5px 4px 3px}
+.front svg{width:82%;height:58%;overflow:visible}
+.front-name{font-size:clamp(.45rem,1.6vw,.72rem);color:#445;text-align:center;line-height:1.2}
+
+.star{position:fixed;pointer-events:none;z-index:40;
+  animation:starPop .7s ease forwards;font-size:1.8rem}
+@keyframes starPop{
+  0%{transform:scale(0) rotate(-20deg);opacity:1}
+  60%{transform:scale(1.4) rotate(10deg);opacity:1}
+  100%{transform:scale(1) translateY(-30px);opacity:0}
+}
+
+#finish{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  flex-direction:column;background:rgba(0,0,0,.38);z-index:50;backdrop-filter:blur(4px)}
+#finish.show{display:flex}
+.finish-card{background:white;border-radius:32px;padding:32px 36px 24px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);animation:finishPop .5s cubic-bezier(.22,.68,0,1.2) forwards;
+  max-width:300px;width:86%}
+@keyframes finishPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.finish-emoji{font-size:3.2rem;margin-bottom:6px}
+.finish-title{font-size:clamp(1.4rem,5vw,1.9rem);color:#e05;font-weight:bold;margin-bottom:4px}
+.finish-sub{font-size:.9rem;color:#666;margin-bottom:16px}
+.finish-btn{display:inline-block;background:linear-gradient(135deg,#ff7043,#ff9800);
+  color:white;border:none;border-radius:50px;padding:10px 26px;font-size:.95rem;
+  font-family:'Kosugi Maru',sans-serif;cursor:pointer;box-shadow:0 5px 0 #c85a00;
+  -webkit-tap-highlight-color:transparent;margin:4px}
+.finish-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #c85a00}
+.finish-btn.home{background:linear-gradient(135deg,#42a5f5,#1976d2);box-shadow:0 5px 0 #1256a0}
+.finish-btn.home:active{box-shadow:0 2px 0 #1256a0}
+
+.confetti{position:fixed;border-radius:2px;z-index:49;
+  animation:confettiFall linear forwards;pointer-events:none}
+@keyframes confettiFall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+  100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+}
+</style>
+</head>
+<body>
+<div class="sun"></div>
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+
+<div class="header">
+  <a class="back-btn" href="index.html">← もどる</a>
+  <div class="score-wrap">❤️ のこり <span id="remaining">9</span> ペア</div>
+</div>
+
+<div id="board"></div>
+
+<div id="finish">
+  <div class="finish-card">
+    <div class="finish-emoji">🏆</div>
+    <div class="finish-title">ぜんぶ そろった！</div>
+    <div class="finish-sub">すごいね！やったね！🎉</div>
+    <button class="finish-btn" onclick="initGame()">もういちど！</button>
+    <a class="finish-btn home" href="index.html">もどる</a>
+  </div>
+</div>
+
+<script>
+const VEHICLES=[
+  {id:'shinkansen',name:'しんかんせん',svg:`<svg viewBox="0 0 300 52" xmlns="http://www.w3.org/2000/svg"><path d="M6 34 Q8 14 34 12 L108 12 L108 42 L6 42 Z" fill="#f7fbff" stroke="#355165" stroke-width="2.6"/><path d="M6 34 Q10 24 24 22 L108 22 L108 42 L6 42 Z" fill="#1f6fd1"/><path d="M10 18 Q18 12 35 14 L60 14 L60 21 L10 21 Z" fill="#a9e3ff"/><rect x="108" y="12" width="92" height="30" fill="#f7fbff" stroke="#355165" stroke-width="2.6"/><rect x="108" y="22" width="92" height="20" fill="#1f6fd1"/><rect x="116" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/><rect x="144" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/><rect x="202" y="12" width="92" height="30" fill="#f7fbff" stroke="#355165" stroke-width="2.6"/><rect x="202" y="22" width="92" height="20" fill="#1f6fd1"/><rect x="210" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/><rect x="238" y="14" width="22" height="8" rx="1" fill="#a9e3ff"/><line x1="24" y1="12" x2="294" y2="12" stroke="#25b35c" stroke-width="3"/></svg>`},
+  {id:'steam',name:'きかんしゃ',svg:`<svg viewBox="0 0 250 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="8" r="8" fill="white" opacity=".7"/><circle cx="44" cy="4" r="10" fill="white" opacity=".6"/><rect x="28" y="14" width="10" height="14" rx="2" fill="#2f3134"/><ellipse cx="33" cy="14" rx="8" ry="3" fill="#44474c"/><rect x="16" y="24" width="84" height="20" rx="10" fill="#3a3d42" stroke="#1f2328" stroke-width="2"/><ellipse cx="74" cy="24" rx="12" ry="7" fill="#575d66"/><rect x="100" y="18" width="42" height="26" rx="3" fill="#8b5a30" stroke="#5a371b" stroke-width="2"/><rect x="104" y="21" width="16" height="14" rx="2" fill="#bce7ff"/><rect x="124" y="21" width="12" height="14" rx="2" fill="#bce7ff"/><circle cx="16" cy="32" r="5" fill="#fff5b7"/><circle cx="48" cy="48" r="10" fill="#cf2e18" stroke="#2f3134" stroke-width="2"/><circle cx="76" cy="48" r="10" fill="#cf2e18" stroke="#2f3134" stroke-width="2"/><rect x="24" y="46" width="52" height="4" rx="2" fill="#a3adb8"/></svg>`},
+  {id:'fire',name:'しょうぼうしゃ',svg:`<svg viewBox="0 0 136 72" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="24" width="106" height="28" rx="8" fill="#ef3a3a" stroke="#28424f" stroke-width="2.5"/><rect x="8" y="16" width="38" height="36" rx="8" fill="#d92c2c" stroke="#28424f" stroke-width="2.5"/><rect x="12" y="20" width="20" height="14" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="48" y="20" width="62" height="6" rx="3" fill="#f0c541"/><rect x="14" y="12" width="18" height="7" rx="3.5" fill="#ff5b5b" stroke="#28424f" stroke-width="2.5"/><circle cx="30" cy="56" r="10" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="30" cy="56" r="4.5" fill="#8c96a3"/><circle cx="102" cy="56" r="10" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="102" cy="56" r="4.5" fill="#8c96a3"/></svg>`},
+  {id:'amb',name:'きゅうきゅうしゃ',svg:`<svg viewBox="0 0 126 70" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="20" width="104" height="30" rx="8" fill="#fbfbfb" stroke="#28424f" stroke-width="2.5"/><rect x="8" y="14" width="34" height="36" rx="8" fill="#f0f0f0" stroke="#28424f" stroke-width="2.5"/><rect x="12" y="18" width="18" height="14" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="10" y="40" width="104" height="7" fill="#f08b22"/><rect x="58" y="22" width="22" height="7" rx="2" fill="#d83030"/><rect x="65" y="16" width="8" height="19" rx="2" fill="#d83030"/><rect x="12" y="10" width="18" height="7" rx="3.5" fill="#ff5959" stroke="#28424f" stroke-width="2.5"/><circle cx="26" cy="56" r="9" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="26" cy="56" r="4.5" fill="#8c96a3"/><circle cx="96" cy="56" r="9" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="96" cy="56" r="4.5" fill="#8c96a3"/></svg>`},
+  {id:'police',name:'パトカー',svg:`<svg viewBox="0 0 120 66" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="32" width="98" height="16" rx="5" fill="#1d1f23" stroke="#28424f" stroke-width="2.5"/><path d="M16 32 L16 18 Q20 10 36 10 L80 10 Q96 12 102 20 L102 32 Z" fill="#f8f8f8" stroke="#28424f" stroke-width="2.5"/><rect x="18" y="14" width="20" height="16" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="42" y="14" width="18" height="14" rx="2" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="36" y="6" width="14" height="6" rx="3" fill="#f14c4c" stroke="#28424f" stroke-width="2.5"/><rect x="54" y="6" width="14" height="6" rx="3" fill="#4388ff" stroke="#28424f" stroke-width="2.5"/><rect x="10" y="36" width="98" height="4" fill="white"/><text x="83" y="28" font-size="8" fill="#2552a8" font-family="sans-serif" font-weight="bold" text-anchor="middle">POLICE</text><circle cx="30" cy="54" r="9" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="30" cy="54" r="4.5" fill="#8c96a3"/><circle cx="92" cy="54" r="9" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="92" cy="54" r="4.5" fill="#8c96a3"/></svg>`},
+  {id:'bus',name:'とえいバス',svg:`<svg viewBox="0 0 154 72" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="12" width="138" height="42" rx="8" fill="#f2da34" stroke="#28424f" stroke-width="2.5"/><rect x="8" y="40" width="138" height="10" fill="#0a8948"/><rect x="8" y="12" width="24" height="42" rx="8" fill="#e6cd2a" stroke="#28424f" stroke-width="2.5"/><rect x="12" y="16" width="16" height="18" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="36" y="18" width="20" height="14" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="62" y="18" width="20" height="14" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="88" y="18" width="20" height="14" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><circle cx="34" cy="58" r="10" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="34" cy="58" r="4.5" fill="#8c96a3"/><circle cx="118" cy="58" r="10" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="118" cy="58" r="4.5" fill="#8c96a3"/></svg>`},
+  {id:'garbage',name:'ごみしゅうしゅう',svg:`<svg viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg"><rect x="42" y="16" width="86" height="34" rx="5" fill="#5ab85f" stroke="#28424f" stroke-width="2.5"/><rect x="8" y="14" width="36" height="36" rx="8" fill="#4da952" stroke="#28424f" stroke-width="2.5"/><rect x="12" y="18" width="20" height="16" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><circle cx="85" cy="33" r="12" fill="rgba(255,255,255,.18)"/><text x="85" y="37" font-size="9" fill="white" font-family="sans-serif" font-weight="bold" text-anchor="middle">ECO</text><circle cx="28" cy="56" r="10" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="28" cy="56" r="4.5" fill="#8c96a3"/><circle cx="108" cy="56" r="10" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="108" cy="56" r="4.5" fill="#8c96a3"/></svg>`},
+  {id:'shovel',name:'ショベルカー',svg:`<svg viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="48" width="110" height="16" rx="8" fill="#444"/><rect x="14" y="50" width="102" height="12" rx="6" fill="#666"/><line x1="24" y1="50" x2="24" y2="62" stroke="#444" stroke-width="3.5"/><line x1="48" y1="50" x2="48" y2="62" stroke="#444" stroke-width="3.5"/><line x1="72" y1="50" x2="72" y2="62" stroke="#444" stroke-width="3.5"/><line x1="96" y1="50" x2="96" y2="62" stroke="#444" stroke-width="3.5"/><rect x="14" y="32" width="100" height="18" rx="4" fill="#f0a800"/><rect x="68" y="12" width="44" height="24" rx="5" fill="#f0a800"/><rect x="72" y="15" width="26" height="16" rx="3" fill="#bfeaff"/><rect x="58" y="26" width="16" height="10" rx="3" fill="#d49000"/><path d="M18 28 L52 18 L58 28 L18 28Z" fill="#d49000"/><path d="M4 22 L18 16 L22 30 L10 36 Q2 34 4 22Z" fill="#b07000"/></svg>`},
+  {id:'delica',name:'デリカmini',svg:`<svg viewBox="0 0 108 66" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="20" width="84" height="28" rx="6" fill="#4b82bd" stroke="#28424f" stroke-width="2.5"/><rect x="8" y="12" width="20" height="36" rx="5" fill="#3d6ea2" stroke="#28424f" stroke-width="2.5"/><rect x="12" y="16" width="14" height="20" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="32" y="16" width="18" height="12" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><rect x="54" y="16" width="18" height="12" rx="3" fill="#bfeaff" stroke="#28424f" stroke-width="2.5"/><text x="60" y="38" font-size="7" fill="white" font-family="sans-serif" font-weight="bold" text-anchor="middle">DELICA</text><circle cx="28" cy="54" r="9" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="28" cy="54" r="4.5" fill="#8c96a3"/><circle cx="78" cy="54" r="9" fill="#31343a" stroke="#28424f" stroke-width="2.5"/><circle cx="78" cy="54" r="4.5" fill="#8c96a3"/></svg>`},
+];
+
+const AC=window.AudioContext||window.webkitAudioContext;
+let actx=null;
+function ctx(){if(!actx)actx=new AC();if(actx.state==='suspended')actx.resume();return actx}
+function tone(freq,type,vol,dur,t0){const ac=ctx(),t=t0||ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||.3,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+dur+.05)}
+function playFlip(){const ac=ctx(),t=ac.currentTime;tone(440,'sine',.15,.12,t);tone(660,'sine',.1,.1,t+.05)}
+function playMatch(){const ac=ctx(),t=ac.currentTime;[523,659,784].forEach((f,i)=>tone(f,'sine',.3,.22,t+i*.12))}
+function playWrong(){tone(200,'sawtooth',.2,.3)}
+function playFinish(){const ac=ctx(),t=ac.currentTime;[523,659,784,880,1047,1319].forEach((f,i)=>tone(f,'sine',.28,.22,t+i*.11))}
+
+let deck=[],flipped=[],matched=0,locked=false;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function initGame(){
+  document.getElementById('finish').classList.remove('show');
+  flipped=[];matched=0;locked=false;
+  document.getElementById('remaining').textContent=9;
+  deck=shuffle([...VEHICLES,...VEHICLES].map((v,i)=>({...v,uid:i})));
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  deck.forEach((v,i)=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`<div class="card-face back"><span class="back-icon">🚗</span></div>
+      <div class="card-face front">${v.svg}<div class="front-name">${v.name}</div></div>`;
+    const handler=()=>onCard(card,i);
+    card.addEventListener('click',handler);
+    board.appendChild(card);
+  });
+}
+
+function onCard(card,i){
+  if(locked||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  playFlip();
+  card.classList.add('flipped');
+  flipped.push({card,id:deck[i].id});
+  if(flipped.length===2){
+    locked=true;
+    const[a,b]=flipped;
+    if(a.id===b.id){
+      setTimeout(()=>{
+        a.card.classList.add('matched');b.card.classList.add('matched');
+        playMatch();star(a.card);star(b.card);
+        matched++;
+        document.getElementById('remaining').textContent=9-matched;
+        flipped=[];locked=false;
+        if(matched===9)setTimeout(()=>{playFinish();confetti();document.getElementById('finish').classList.add('show')},600);
+      },300);
+    }else{
+      setTimeout(()=>{
+        a.card.classList.add('wrong');b.card.classList.add('wrong');
+        playWrong();
+        setTimeout(()=>{
+          a.card.classList.remove('flipped','wrong');b.card.classList.remove('flipped','wrong');
+          flipped=[];locked=false;
+        },500);
+      },700);
+    }
+  }
+}
+
+function star(card){
+  const r=card.getBoundingClientRect(),el=document.createElement('div');
+  el.className='star';el.textContent='⭐';
+  el.style.left=(r.left+r.width/2-16)+'px';el.style.top=(r.top+r.height/2-16)+'px';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),700);
+}
+
+function confetti(){
+  const cols=['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8'];
+  for(let i=0;i<50;i++)setTimeout(()=>{
+    const el=document.createElement('div');el.className='confetti';
+    el.style.left=Math.random()*100+'vw';
+    el.style.background=cols[Math.floor(Math.random()*cols.length)];
+    el.style.width=(8+Math.random()*8)+'px';el.style.height=(8+Math.random()*8)+'px';
+    el.style.borderRadius=Math.random()>.5?'50%':'2px';
+    el.style.animationDuration=(1.5+Math.random()*2)+'s';
+    document.body.appendChild(el);setTimeout(()=>el.remove(),3500);
+  },i*50);
+}
+
+initGame();
+</script>
+</body>
+</html>
